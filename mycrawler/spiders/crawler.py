@@ -1,7 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import logging   # for logging
 from logging.handlers import TimedRotatingFileHandler   # for logging
 
 import scrapy
+from scrapy.loader import ItemLoader   # for item loader
+
+from mycrawler.items import MycrawlerItem   # to load items for iteam loader
 
 # log file setting
 REGULAR_LOG_FILE = "StockCrawler-log.log"   # all logs will be saved to this file
@@ -17,14 +22,9 @@ parse_fh = TimedRotatingFileHandler(
                                     backupCount=7
                                 )
 
-# setting the foramt for file handler
-parse_fh.setFormatter(formatter)
-
-# setting the level for each handler
-parse_fh.setLevel(logging.DEBUG)
-
-# adding the handlers
-crawler_logger.addHandler(parse_fh)
+parse_fh.setFormatter(formatter)   # setting the format for file handler
+parse_fh.setLevel(logging.DEBUG)   # setting the level for each handler
+crawler_logger.addHandler(parse_fh)   # adding the handlers
 
 
 class StockCrawler(scrapy.Spider):
@@ -41,4 +41,10 @@ class StockCrawler(scrapy.Spider):
 
     def parse(self, response):
         page = response.url
-        crawler_logger.info("The url of the target is: {}".format(page))
+        crawler_logger.info("The url of the target is: {}".format(page))   # logging example
+
+        item_loader = ItemLoader(item=MycrawlerItem(), response=response)
+        item_loader.add_xpath('name', '//font[@class="f1"]/text()')   #  response.xpath('//font[@class="f1"]/text()').extract_first().encode('utf-8')
+        item_loader.add_xpath('code_number', '//font[@class="f2"]/text()')
+
+        return item_loader.load_item()
